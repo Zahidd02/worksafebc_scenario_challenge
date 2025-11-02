@@ -1,0 +1,87 @@
+tasks:
+  retrieve_applicable_policies:
+    description: |
+      Analyze the invoice details and retrieve all applicable WorkSafeBC policies:
+      - Invoice: {invoice_data}
+      - Procedure Code: {procedure_code}
+      - Industry: {industry_type}
+      
+      Identify:
+      1. Relevant billing policies for the procedure code
+      2. Industry-specific coverage rules
+      3. Maximum coverage amounts
+      4. Required documentation standards
+      5. Any special conditions or restrictions
+      
+      Return a structured summary of applicable policies.
+    expected_output: "Structured list of applicable policies with coverage details and requirements"
+    agent: policy_lookup
+
+  summarize_case:
+    description: |
+      Create a comprehensive case summary for payment review:
+      - Patient History: {patient_history}
+      - Communication Logs: {communication_logs}
+      - Current Invoice: {invoice_data}
+      
+      Summarize:
+      1. Patient injury details and claim timeline
+      2. Previous treatment and billing history
+      3. Relevant communications with providers and patient
+      4. Current claim status and return-to-work progress
+      5. Any red flags or concerns
+      
+      Provide a concise, actionable summary for payment decision.
+    expected_output: "Comprehensive case summary with key decision-making information"
+    agent: summarizer
+
+  review_payment:
+    description: |
+      Review the invoice and make a payment decision:
+      - Invoice Details: {invoice_data}
+      - Applicable Policies: {policy_summary}
+      - Case Summary: {case_summary}
+      
+      Evaluate:
+      1. Does the procedure code match policy coverage?
+      2. Is the billed amount within policy limits?
+      3. Is documentation sufficient?
+      4. Are there any timing or eligibility issues?
+      5. Does the treatment align with injury type?
+      
+      Provide:
+      - Decision: APPROVE, DENY, or ESCALATE
+      - Confidence Score: 0-100%
+      - Detailed reasoning
+      - Recommended action
+    expected_output: "Payment decision with confidence score and detailed reasoning"
+    agent: payment_reviewer
+    context:
+      - retrieve_applicable_policies
+      - summarize_case
+
+  escalation_routing:
+    description: |
+      Review the payment decision and determine if escalation is needed:
+      - Payment Decision: {payment_decision}
+      - Confidence Score: {confidence_score}
+      - Case Complexity: {case_summary}
+      
+      Escalate if:
+      1. Confidence score < 75%
+      2. Policy conflicts detected
+      3. Billed amount exceeds typical range by >30%
+      4. Missing critical documentation
+      5. First-time complex procedure
+      
+      If escalation needed:
+      - Identify appropriate review level (Senior Officer, Medical Advisor, etc.)
+      - Summarize key concerns
+      - Recommend priority level
+      
+      If no escalation:
+      - Confirm automated processing is appropriate
+    expected_output: "Escalation decision with routing details or confirmation for automated processing"
+    agent: escalation
+    context:
+      - review_payment
