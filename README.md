@@ -1,4 +1,4 @@
-# WorkSafeBC Payment Review System (Scenario 1: Automating Manual Review of Payment Related Tasks )
+# WorkSafeBC Payment Review System (Scenario 1: Automating Manual Review of Payment Related Tasks)
 
 An AI-powered automated payment review system for WorkSafeBC medical invoices using CrewAI multi-agent orchestration.
 
@@ -87,27 +87,7 @@ The application will start and begin processing pending invoices automatically.
 
 ## Sample Output
 
-```
-PROCESSING COMPLETE
-============================================================
-Total Processed:  10
-  ├─ Approved:    7 (70.0%)
-  ├─ Denied:      2 (20.0%)
-  └─ Escalated:   1 (10.0%)
-
-Errors:           0
-Success Rate:     100.0%
-
-SAMPLE RESULTS (First 5)
-============================================================
-Invoice ID:      INV-001
-Patient:         John Doe
-Procedure:       PT-101
-Amount:          $450.00
-Decision:        APPROVED
-Confidence:      95.0%
-------------------------------------------------------------
-```
+![alt text](./assets/docker_output.png)
 
 ## Configuration
 

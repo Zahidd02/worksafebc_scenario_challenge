@@ -4,7 +4,13 @@ from crewai import Agent, LLM
 from crewai.project import agent
 from crewai import Task
 from crewai.project import task
+from crewai.knowledge.source.pdf_knowledge_source import PDFKnowledgeSource
+
 import yaml
+
+pdf_source = PDFKnowledgeSource(
+    file_paths=["rejection_policy_knowledge.pdf"]
+)
 
 llm = LLM(
     model="gpt-4o-mini", # Prod: anthropic/claude-sonnet-4-5-20250929
@@ -58,7 +64,8 @@ class PaymentReviewCrew:
             backstory=cfg['backstory'],
             verbose=cfg.get('verbose', True),
             allow_delegation=cfg.get('allow_delegation', False),
-            llm=llm
+            llm=llm,
+            # knowledge_sources=[pdf_source] # Uncomment to enable testing PDF knowledge source
         )
 
     @agent
