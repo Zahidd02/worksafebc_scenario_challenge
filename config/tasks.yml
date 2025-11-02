@@ -1,4 +1,3 @@
-tasks:
   retrieve_applicable_policies:
     description: |
       Analyze the invoice details and retrieve all applicable WorkSafeBC policies:

@@ -28,7 +28,7 @@ def main():
     orchestrator = PaymentReviewOrchestrator(connection_string)
 
     # Process batch of invoices
-    batch_size = int(os.getenv('BATCH_SIZE', '2'))
+    batch_size = int(os.getenv('BATCH_SIZE', '1'))
     print(f"\nStarting automated payment review process (batch size: {batch_size})...")
 
     results = orchestrator.process_batch(batch_size=batch_size)

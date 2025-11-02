@@ -1,4 +1,3 @@
-agents:
   policy_lookup:
     role: "Policy Compliance Specialist"
     goal: "Identify applicable WorkSafeBC policies and rules for medical procedures and invoices"

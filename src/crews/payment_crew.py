@@ -1,8 +1,16 @@
 from crewai import Crew
 from crewai.project import CrewBase, crew
-from src.agents.payment_agents import PaymentReviewAgents
-from src.tasks.payment_tasks import PaymentReviewTasks
+from crewai import Agent, LLM
+from crewai.project import agent
+from crewai import Task
+from crewai.project import task
+import yaml
 
+llm = LLM(
+    model="gpt-4o-mini",
+    temperature=0.2,
+    max_tokens=1000
+)
 
 @CrewBase
 class PaymentReviewCrew:
@@ -16,15 +24,178 @@ class PaymentReviewCrew:
     4. Escalation Agent - Routes complex cases
     """
 
-    agents_config = '../../config/agents.yml'
-    tasks_config = '../../config/tasks.yml'
-
     def __init__(self):
         """Initialize crew with data access capability"""
         self.data_access = None  # Will be injected by orchestrator
-        self.agents = PaymentReviewAgents()
-        self.tasks = PaymentReviewTasks(self.agents)
 
+    # Load Agent configurations
+    @staticmethod
+    def get_agent_config(agent_name):
+        """Fetch agent settings from agents.yml by agent_name key."""
+        with open('config/agents.yml', 'r') as f:
+            agents_config = yaml.safe_load(f)
+        try:
+            return agents_config[agent_name]
+        except KeyError:
+            raise ValueError(f"Agent '{agent_name}' not found in agents.yml")
+
+    @agent
+    def policy_lookup(self) -> Agent:
+        """Policy Compliance Specialist Agent"""
+        cfg = self.get_agent_config('policy_lookup')
+        return Agent(
+            role=cfg['role'],
+            goal=cfg['goal'],
+            backstory=cfg['backstory'],
+            verbose=cfg.get('verbose', True),
+            allow_delegation=cfg.get('allow_delegation', False),
+            llm=llm
+        )
+
+    @agent
+    def summarizer(self) -> Agent:
+        """Case Documentation Specialist Agent"""
+        cfg = self.get_agent_config('summarizer')
+        return Agent(
+            role=cfg['role'],
+            goal=cfg['goal'],
+            backstory=cfg['backstory'],
+            verbose=cfg.get('verbose', True),
+            allow_delegation=cfg.get('allow_delegation', False),
+            llm=llm
+        )
+
+    @agent
+    def payment_reviewer(self) -> Agent:
+        """Payment Authorization Officer Agent"""
+        cfg = self.get_agent_config('payment_reviewer')
+        return Agent(
+            role=cfg['role'],
+            goal=cfg['goal'],
+            backstory=cfg['backstory'],
+            verbose=cfg.get('verbose', True),
+            allow_delegation=cfg.get('allow_delegation', False),
+            llm=llm
+        )
+
+    @agent
+    def escalation(self) -> Agent:
+        """Claims Escalation Coordinator Agent"""
+        cfg = self.get_agent_config('escalation')
+        return Agent(
+            role=cfg['role'],
+            goal=cfg['goal'],
+            backstory=cfg['backstory'],
+            verbose=cfg.get('verbose', True),
+            allow_delegation=cfg.get('allow_delegation', False),
+            llm=llm
+        )
+
+
+    # Load Task configurations
+    @staticmethod
+    def get_task_config(task_name):
+        """Fetch task settings from tasks.yml by task_name key."""
+        with open('config/tasks.yml', 'r') as f:
+            tasks_config = yaml.safe_load(f)
+        try:
+            return tasks_config[task_name]
+        except KeyError:
+            raise ValueError(f"Task '{task_name}' not found in tasks.yml")
+
+    @task
+    def retrieve_applicable_policies(self) -> Task:
+        """
+        Task to identify and retrieve applicable policies
+
+        Inputs:
+        - invoice_data: JSON string of invoice details
+        - procedure_code: Medical procedure code
+        - industry_type: Employer's industry classification
+
+        Outputs:
+        - Structured list of applicable policies
+        - Coverage limits and requirements
+        - Special conditions or restrictions
+        """
+        cfg = self.get_task_config('retrieve_applicable_policies')
+        return Task(
+            description=cfg['description'],
+            agent=getattr(self, cfg['agent'])(),
+            expected_output=cfg['expected_output']
+        )
+
+    @task
+    def summarize_case(self) -> Task:
+        """
+        Task to create comprehensive case summary
+
+        Inputs:
+        - patient_history: JSON string of patient medical history
+        - communication_logs: JSON string of communication records
+        - invoice_data: JSON string of current invoice
+
+        Outputs:
+        - Comprehensive case summary
+        - Key decision-making factors
+        - Red flags or concerns
+        """
+        cfg = self.get_task_config('summarize_case')
+        return Task(
+            description=cfg['description'],
+            agent=getattr(self, cfg['agent'])(),
+            expected_output=cfg['expected_output']
+        )
+
+    @task
+    def review_payment(self) -> Task:
+        """
+        Task to make payment decision
+
+        Inputs:
+        - invoice_data: Current invoice details
+        - policy_summary: Applicable policies from previous task
+        - case_summary: Patient case summary from previous task
+
+        Outputs:
+        - Decision: APPROVE, DENY, or ESCALATE
+        - Confidence score (0-100%)
+        - Detailed reasoning with policy citations
+        - Recommended action
+        """
+        cfg = self.get_task_config('review_payment')
+        return Task(
+            description=cfg['description'],
+            agent=getattr(self, cfg['agent'])(),
+            expected_output=cfg['expected_output'],
+            context=[getattr(self, ctx)() for ctx in cfg.get('context', [])]
+        )
+
+    @task
+    def escalation_routing(self) -> Task:
+        """
+        Task to determine if escalation is needed
+
+        Inputs:
+        - payment_decision: Decision from payment reviewer
+        - confidence_score: Confidence level of decision
+        - case_summary: Case complexity information
+
+        Outputs:
+        - Escalation decision (YES/NO)
+        - Target review level if escalation needed
+        - Priority level (High/Medium/Low)
+        - Summary of concerns
+        """
+        cfg = self.get_task_config('escalation_routing')
+        return Task(
+            description=cfg['description'],
+            agent=getattr(self, cfg['agent'])(),
+            expected_output=cfg['expected_output'],
+            context=[getattr(self, ctx)() for ctx in cfg.get('context', [])]
+        )
+
+    # Crew Definition
     @crew
     def crew(self) -> Crew:
         """
@@ -37,42 +208,19 @@ class PaymentReviewCrew:
         Returns:
             Configured Crew instance ready for execution
         """
-        if not self.agents:
-            self.agents = PaymentReviewAgents()
-        if not self.tasks:
-            self.tasks = PaymentReviewTasks(self.agents)
 
         return Crew(
             agents=[
-                self.agents.policy_lookup(),
-                self.agents.summarizer(),
-                self.agents.payment_reviewer(),
-                self.agents.escalation()
+                self.policy_lookup(),
+                self.summarizer(),
+                self.payment_reviewer(),
+                self.escalation()
             ],
             tasks=[
-                self.tasks.retrieve_applicable_policies_task(),
-                self.tasks.summarize_case_task(),
-                self.tasks.review_payment_task(),
-                self.tasks.escalation_routing_task()
+                self.retrieve_applicable_policies(),
+                self.summarize_case(),
+                self.review_payment(),
+                self.escalation_routing()
             ],
             verbose=True,
-            delegation=True,
         )
-
-    def kickoff(self, inputs: dict):
-        """
-        Execute the crew with provided inputs
-
-        Args:
-            inputs: Dictionary containing:
-                - invoice_data: JSON string of invoice details
-                - patient_history: JSON string of patient history
-                - communication_logs: JSON string of communications
-                - procedure_code: Medical procedure code
-                - industry_type: Employer industry
-                - policy_summary: JSON string of applicable policies
-
-        Returns:
-            Crew execution result with decisions and reasoning
-        """
-        return self.crew().kickoff(inputs=inputs)
