@@ -27,11 +27,11 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a real user home directory so CrewAI can write RAG/ChromaDB data
+# Create user home directory (...so CrewAI can write ChromaDB data)
 ARG UID=10001
 RUN useradd -m -d /home/appuser -u ${UID} appuser
 
-# Set HOME so libraries know where to store files
+# Set HOME (...so libraries know where to store files)
 ENV HOME=/home/appuser
 RUN mkdir -p /home/appuser/.local/share && chmod -R 777 /home/appuser
 
