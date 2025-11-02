@@ -7,7 +7,7 @@ from crewai.project import task
 import yaml
 
 llm = LLM(
-    model="gpt-4o-mini",
+    model="gpt-4o-mini", # Prod: anthropic/claude-sonnet-4-5-20250929
     temperature=0.2,
     max_tokens=1000
 )
