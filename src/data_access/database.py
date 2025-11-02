@@ -46,8 +46,10 @@ class WorkSafeBCDataAccess:
 
     def get_patient_history(self, patient_id: str) -> Dict:
         """
-        Get comprehensive patient medical and claim history from DB.
-        Prod: This would usually be an API call to EMR endpoint provider.
+        Get patient's medical and claim history from DB.
+        Prod:
+         - Medical docs: This would usually be an API call to EMR endpoint provider (...maybe PharmaNet).
+         - Claim history: Could be a separate WorkSafeBC's internal Data Warehouse.
 
         Args:
             patient_id: Unique patient identifier
@@ -80,7 +82,8 @@ class WorkSafeBCDataAccess:
 
     def get_communication_logs(self, patient_id: str) -> List[Dict]:
         """
-        Retrieve communication history for a patient
+        Retrieve communication history for a patient/injured worker.
+        Prod: Simulates API call to WorkSafeBC's internal CRM/case management.
 
         Args:
             patient_id: Unique patient identifier
