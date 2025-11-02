@@ -1,0 +1,175 @@
+-- 1. PATIENTS TABLE
+CREATE TABLE Patients (
+    PatientID           VARCHAR(50) PRIMARY KEY,
+    FirstName           NVARCHAR(100) NOT NULL,
+    LastName            NVARCHAR(100) NOT NULL,
+    DateOfBirth         DATE NOT NULL,
+    Gender              VARCHAR(10) CHECK (Gender IN ('Male', 'Female', 'Other')),
+    AddressLine1        NVARCHAR(255),
+    City                NVARCHAR(100),
+    Province            NVARCHAR(50),
+    PostalCode          NVARCHAR(20),
+    PhoneNumber         NVARCHAR(20),
+    Email               NVARCHAR(255),
+    EmployerName        NVARCHAR(255),
+    IndustryType        NVARCHAR(100),
+    InjuryDate          DATE,
+    ClaimStartDate      DATE,
+    ClaimEndDate        DATE NULL,
+    ReturnToWorkStatus  VARCHAR(50) CHECK (ReturnToWorkStatus IN ('Pending', 'In Progress', 'Completed', 'Unknown')),
+    CreatedAt           DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+
+-- 2. PROVIDERS TABLE
+CREATE TABLE Providers (
+    ProviderID          VARCHAR(50) PRIMARY KEY,
+    ProviderName        NVARCHAR(255) NOT NULL,
+    ProviderType        VARCHAR(100) CHECK (ProviderType IN ('Physician', 'Physiotherapist', 'Chiropractor', 'Hospital', 'Clinic', 'Other')),
+    Specialization      NVARCHAR(100),
+    LicenseNumber       VARCHAR(50),
+    AddressLine1        NVARCHAR(255),
+    City                NVARCHAR(100),
+    Province            NVARCHAR(50),
+    PostalCode          NVARCHAR(20),
+    PhoneNumber         NVARCHAR(20),
+    Email               NVARCHAR(255),
+    IsActive            BIT DEFAULT 1,
+    CreatedAt           DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+
+-- 3. INVOICES TABLE
+CREATE TABLE Invoices (
+    InvoiceID           VARCHAR(50) PRIMARY KEY,
+    PatientID           VARCHAR(50) NOT NULL,
+    ProviderID          VARCHAR(50) NOT NULL,
+    ProcedureCode       VARCHAR(20) NOT NULL,
+    ProcedureDescription NVARCHAR(500),
+    BilledAmount        DECIMAL(10,2) NOT NULL,
+    InvoiceDate         DATE NOT NULL,
+    ServiceDate         DATE NOT NULL,
+    Status              VARCHAR(50) CHECK (Status IN ('Pending Review', 'Approved', 'Denied', 'Escalated', 'Under Review')) DEFAULT 'Pending Review',
+    ReviewedBy          VARCHAR(100) NULL,
+    ReviewDate          DATETIME2 NULL,
+    AIConfidenceScore   FLOAT NULL,
+    DecisionReasoning   NVARCHAR(MAX) NULL,
+    RejectionReason     NVARCHAR(500) NULL,
+    CreatedAt           DATETIME2 DEFAULT SYSUTCDATETIME(),
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID),
+    FOREIGN KEY (ProviderID) REFERENCES Providers(ProviderID)
+);
+
+-- 4. POLICIES TABLE
+CREATE TABLE Policies (
+    PolicyID            VARCHAR(50) PRIMARY KEY,
+    PolicyName          NVARCHAR(255) NOT NULL,
+    PolicyDescription   NVARCHAR(MAX),
+    ApplicableProcedures NVARCHAR(MAX), -- Comma-separated procedure codes or 'All'
+    IndustryType        NVARCHAR(100), -- Specific industry or 'All'
+    MaxCoverageAmount   DECIMAL(10,2) NULL,
+    RequiredDocumentation NVARCHAR(MAX),
+    EffectiveDate       DATE NOT NULL,
+    ExpiryDate          DATE NULL,
+    IsActive            BIT DEFAULT 1,
+    CreatedAt           DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+
+-- 5. COMMUNICATIONS TABLE
+CREATE TABLE Communications (
+    CommunicationID     VARCHAR(50) PRIMARY KEY,
+    PatientID           VARCHAR(50) NOT NULL,
+    CommunicationType   VARCHAR(50) CHECK (CommunicationType IN ('Email', 'Phone', 'Letter', 'Fax', 'Portal')),
+    Subject             NVARCHAR(255),
+    MessageBody         NVARCHAR(MAX),
+    SentDate            DATETIME2 DEFAULT SYSUTCDATETIME(),
+    SentBy              NVARCHAR(100), -- Staff member or system
+    ReceivedFrom        NVARCHAR(100), -- Patient, Provider, or Other
+    AttachmentCount     INT DEFAULT 0,
+    CreatedAt           DATETIME2 DEFAULT SYSUTCDATETIME(),
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID)
+);
+
+-- 6. PROCEDURE_CATALOG TABLE
+CREATE TABLE ProcedureCatalog (
+    ProcedureCode       VARCHAR(20) PRIMARY KEY,
+    ProcedureName       NVARCHAR(255) NOT NULL,
+    Category            VARCHAR(100),
+    StandardCost        DECIMAL(10,2),
+    TypicalDuration     INT, -- in minutes
+    RequiresPreAuth     BIT DEFAULT 0,
+    IsActive            BIT DEFAULT 1
+);
+
+-- 7. AUDIT_LOG TABLE
+CREATE TABLE AuditLog (
+    AuditID             BIGINT IDENTITY(1,1) PRIMARY KEY,
+    InvoiceID           VARCHAR(50),
+    Action              VARCHAR(100) NOT NULL,
+    PerformedBy         VARCHAR(100) NOT NULL,
+    OldValue            NVARCHAR(MAX),
+    NewValue            NVARCHAR(MAX),
+    Timestamp           DATETIME2 DEFAULT SYSUTCDATETIME(),
+    FOREIGN KEY (InvoiceID) REFERENCES Invoices(InvoiceID)
+);
+
+-- ============================================================================
+-- SAMPLE DATA INSERTS
+-- ============================================================================
+
+-- Insert Patients (Already provided)
+INSERT INTO Patients (PatientID, FirstName, LastName, DateOfBirth, Gender, AddressLine1, City, Province, PostalCode, PhoneNumber, Email, EmployerName, IndustryType, InjuryDate, ClaimStartDate, ClaimEndDate, ReturnToWorkStatus)
+VALUES
+('PAT-001', 'Alex', 'Morgan', '1985-03-22', 'Male', '1234 Kingsway Ave', 'Burnaby', 'BC', 'V5H 2E5', '604-555-0101', 'alex.morgan@email.com', 'ABC Construction Ltd', 'Construction', '2025-08-12', '2025-08-15', NULL, 'In Progress'),
+('PAT-002', 'Sarah', 'Nguyen', '1990-07-11', 'Female', '200 Granville St', 'Vancouver', 'BC', 'V6C 1S4', '604-555-0102', 'sarah.nguyen@email.com', 'West Coast Logistics', 'Transportation', '2025-07-30', '2025-08-01', NULL, 'Pending'),
+('PAT-003', 'David', 'Singh', '1979-02-09', 'Male', '9980 No. 3 Rd', 'Richmond', 'BC', 'V7A 1W3', '604-555-0103', 'david.singh@email.com', 'Pacific Timber', 'Forestry', '2025-06-20', '2025-06-22', '2025-09-01', 'Completed'),
+('PAT-004', 'Emily', 'Chen', '1994-05-18', 'Female', '5825 Willingdon Ave', 'Burnaby', 'BC', 'V5H 4E7', '604-555-0104', 'emily.chen@email.com', 'Skyline Hospitality', 'Hospitality', '2025-09-03', '2025-09-04', NULL, 'In Progress'),
+('PAT-005', 'Mark', 'Davis', '1988-10-30', 'Male', '12100 88 Ave', 'Surrey', 'BC', 'V3W 3J3', '604-555-0105', 'mark.davis@email.com', 'BC Auto Works', 'Automotive Repair', '2025-08-10', '2025-08-12', NULL, 'Pending');
+
+-- Insert Providers
+INSERT INTO Providers (ProviderID, ProviderName, ProviderType, Specialization, LicenseNumber, AddressLine1, City, Province, PostalCode, PhoneNumber, Email, IsActive)
+VALUES
+('PROV-001', 'Vancouver General Hospital', 'Hospital', 'General Medical', 'H-12345', '899 W 12th Ave', 'Vancouver', 'BC', 'V5Z 1M9', '604-875-4111', 'billing@vgh.ca', 1),
+('PROV-002', 'Dr. Jennifer Lee', 'Physician', 'Orthopedic Surgery', 'P-67890', '1200 Burrard St', 'Vancouver', 'BC', 'V6Z 2C7', '604-555-0201', 'dr.lee@orthoclinic.ca', 1),
+('PROV-003', 'Pacific Physiotherapy Centre', 'Physiotherapist', 'Sports Medicine', 'PT-24680', '4567 Lougheed Hwy', 'Burnaby', 'BC', 'V5C 3Z6', '604-555-0202', 'info@pacificphysio.ca', 1),
+('PROV-004', 'Dr. Michael Wong', 'Chiropractor', 'Spinal Care', 'C-13579', '8888 Odlin Crescent', 'Richmond', 'BC', 'V6X 3Z8', '604-555-0203', 'dr.wong@spinecare.ca', 1),
+('PROV-005', 'Surrey Memorial Hospital', 'Hospital', 'Emergency Medicine', 'H-98765', '13750 96 Ave', 'Surrey', 'BC', 'V3V 1Z2', '604-581-2211', 'billing@smh.ca', 1);
+
+-- Insert Invoices
+INSERT INTO Invoices (InvoiceID, PatientID, ProviderID, ProcedureCode, ProcedureDescription, BilledAmount, InvoiceDate, ServiceDate, Status)
+VALUES
+('INV-001', 'PAT-001', 'PROV-001', 'X-RAY-001', 'X-Ray Imaging - Lower Back', 245.00, '2025-08-16', '2025-08-15', 'Pending Review'),
+('INV-002', 'PAT-001', 'PROV-003', 'PHYSIO-001', 'Initial Physiotherapy Assessment', 120.00, '2025-08-20', '2025-08-19', 'Pending Review'),
+('INV-003', 'PAT-002', 'PROV-002', 'CONSULT-001', 'Orthopedic Consultation', 180.00, '2025-08-05', '2025-08-04', 'Pending Review'),
+('INV-004', 'PAT-003', 'PROV-003', 'PHYSIO-002', 'Follow-up Physiotherapy Session', 95.00, '2025-07-10', '2025-07-09', 'Approved'),
+('INV-005', 'PAT-004', 'PROV-004', 'CHIRO-001', 'Chiropractic Adjustment', 75.00, '2025-09-10', '2025-09-09', 'Pending Review'),
+('INV-006', 'PAT-005', 'PROV-005', 'ER-VISIT-001', 'Emergency Room Visit', 450.00, '2025-08-13', '2025-08-12', 'Pending Review'),
+('INV-007', 'PAT-001', 'PROV-002', 'MRI-001', 'MRI Scan - Lumbar Spine', 875.00, '2025-08-25', '2025-08-24', 'Pending Review'),
+('INV-008', 'PAT-002', 'PROV-003', 'PHYSIO-001', 'Initial Physiotherapy Assessment', 120.00, '2025-08-10', '2025-08-09', 'Pending Review');
+
+-- Insert Policies
+INSERT INTO Policies (PolicyID, PolicyName, PolicyDescription, ApplicableProcedures, IndustryType, MaxCoverageAmount, RequiredDocumentation, EffectiveDate, IsActive)
+VALUES
+('POL-001', 'Standard Diagnostic Imaging Coverage', 'Covers standard X-rays, CT scans, and MRI for work-related injuries', 'X-RAY-001,MRI-001,CT-001', 'All', 1000.00, 'Physician referral, Injury report', '2025-01-01', 1),
+('POL-002', 'Physiotherapy Treatment Policy', 'Covers up to 20 sessions of physiotherapy per injury claim', 'PHYSIO-001,PHYSIO-002', 'All', 150.00, 'Initial assessment report', '2025-01-01', 1),
+('POL-003', 'Emergency Medical Services', 'Full coverage for emergency room visits related to workplace injuries', 'ER-VISIT-001', 'All', NULL, 'Emergency report, Injury notification', '2025-01-01', 1),
+('POL-004', 'Specialist Consultation Coverage', 'Covers specialist consultations with referral', 'CONSULT-001,CONSULT-002', 'All', 300.00, 'Referral from primary physician', '2025-01-01', 1),
+('POL-005', 'Alternative Therapy Coverage', 'Limited coverage for chiropractic and acupuncture', 'CHIRO-001,ACUP-001', 'Construction,Forestry,Manufacturing', 100.00, 'Treatment plan, Progress notes', '2025-01-01', 1);
+
+-- Insert Communications
+INSERT INTO Communications (CommunicationID, PatientID, CommunicationType, Subject, MessageBody, SentDate, SentBy, ReceivedFrom)
+VALUES
+('COMM-001', 'PAT-001', 'Email', 'Claim Status Inquiry', 'Patient inquired about status of physiotherapy claim', '2025-08-22 10:30:00', 'Claims Officer', 'Alex Morgan'),
+('COMM-002', 'PAT-001', 'Phone', 'Treatment Authorization', 'Discussed need for MRI scan, obtained verbal consent', '2025-08-23 14:15:00', 'Medical Advisor', 'Dr. Jennifer Lee'),
+('COMM-003', 'PAT-002', 'Email', 'Documentation Request', 'Requested additional medical documentation for claim', '2025-08-08 09:00:00', 'Registration Officer', 'Sarah Nguyen'),
+('COMM-004', 'PAT-003', 'Letter', 'Claim Closure Notice', 'Notified patient of successful claim completion', '2025-09-02 16:00:00', 'Claims Officer', 'N/A'),
+('COMM-005', 'PAT-004', 'Portal', 'New Treatment Plan', 'Submitted treatment plan for chiropractic care', '2025-09-08 11:20:00', 'System', 'Dr. Michael Wong');
+
+-- Insert Procedure Catalog
+INSERT INTO ProcedureCatalog (ProcedureCode, ProcedureName, Category, StandardCost, TypicalDuration, RequiresPreAuth)
+VALUES
+('X-RAY-001', 'X-Ray Imaging - Lower Back', 'Diagnostic Imaging', 245.00, 30, 0),
+('MRI-001', 'MRI Scan - Lumbar Spine', 'Diagnostic Imaging', 875.00, 60, 1),
+('PHYSIO-001', 'Initial Physiotherapy Assessment', 'Rehabilitation', 120.00, 60, 0),
+('PHYSIO-002', 'Follow-up Physiotherapy Session', 'Rehabilitation', 95.00, 45, 0),
+('CONSULT-001', 'Orthopedic Consultation', 'Specialist Consultation', 180.00, 45, 0),
+('CHIRO-001', 'Chiropractic Adjustment', 'Alternative Therapy', 75.00, 30, 0),
+('ER-VISIT-001', 'Emergency Room Visit', 'Emergency Services', 450.00, 180, 0);

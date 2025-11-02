@@ -31,7 +31,7 @@ The system uses **CrewAI** to orchestrate four specialized AI agents:
 
 ## Prerequisites
 
-- Docker (link: https://www.docker.com/get-started)
+- Docker Desktop (link: https://www.docker.com/get-started)
 - OpenAI API key
 - Azure credentials for SQL Database access
 

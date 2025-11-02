@@ -223,13 +223,15 @@ class PaymentReviewOrchestrator:
 
         return reasoning
 
-    def get_processing_summary(self) -> Dict[str, Any]:
+    def escalate_invoice(self) -> Dict[str, Any]:
         """
-        Get summary of current processing status
-
+        escalate_invoice placeholder for future implementation of sending invoices to human reviewers
+        either by email notification or task management system like JIRA.
+        """
+        """
         Returns:
-            Dictionary with current backlog and processing stats
+            Dictionary with escalation results
         """
-        # This would query the database for current statistics
-        # Implementation depends on specific reporting requirements
+        # Implementation to be added in future iterations
+        # Send notification to human reviewers with invoice details
         pass
