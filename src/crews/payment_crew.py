@@ -24,10 +24,6 @@ class PaymentReviewCrew:
     4. Escalation Agent - Routes complex cases
     """
 
-    def __init__(self):
-        """Initialize crew with data access capability"""
-        self.data_access = None  # Will be injected by orchestrator
-
     # Load Agent configurations
     @staticmethod
     def get_agent_config(agent_name):

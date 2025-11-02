@@ -37,7 +37,7 @@ class PaymentReviewOrchestrator:
         Returns:
             Crew execution result with decision and reasoning
         """
-        # Gather all necessary context from database
+        # Gather all necessary context for processing the invoice
         patient_history = self.data_access.get_patient_history(
             invoice_data['PatientID']
         )

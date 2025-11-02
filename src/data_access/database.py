@@ -1,6 +1,5 @@
 import pyodbc
-from typing import List, Dict, Optional
-from datetime import datetime
+from typing import List, Dict
 
 
 class WorkSafeBCDataAccess:
@@ -47,7 +46,8 @@ class WorkSafeBCDataAccess:
 
     def get_patient_history(self, patient_id: str) -> Dict:
         """
-        Get comprehensive patient medical and claim history
+        Get comprehensive patient medical and claim history from DB.
+        Prod: This would usually be an API call to EMR endpoint provider.
 
         Args:
             patient_id: Unique patient identifier
