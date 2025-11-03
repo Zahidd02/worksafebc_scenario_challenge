@@ -46,8 +46,8 @@ cd worksafebc_scenario_challenge
 
 ### 2. Configure Environment Variables
 
-Create a `.env` file in the root directory:
-
+Create a `.env` file in the root directory. 
+(Please email **zahiddodiya@gmail.com** to request the temporary credentials.)
 ```bash
 # Azure SQL Database Configuration
 AZURE_SQL_DRIVER={ODBC Driver 18 for SQL Server}
