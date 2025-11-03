@@ -141,6 +141,7 @@ class WorkSafeBCDataAccess:
     ) -> None:
         """
         Update invoice with automated decision
+        # Prod: Using Azure Service Bus for next steps in workflow, i.e. notifying Payment Officers, claim adjusters, etc.
 
         Args:
             invoice_id: Unique invoice identifier
