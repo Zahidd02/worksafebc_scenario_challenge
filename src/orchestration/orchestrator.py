@@ -7,7 +7,7 @@ from src.crews.payment_crew import PaymentReviewCrew
 
 class PaymentReviewOrchestrator:
     """
-    Main orchestrator for automated payment review process
+    Main orchestrator for automated payment review process, subject to change as per WorkSafeBC's internal architecture.
 
     Responsibilities:
     - Coordinate data retrieval from database

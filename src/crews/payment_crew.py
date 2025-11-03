@@ -1,9 +1,7 @@
 from crewai import Crew
-from crewai.project import CrewBase, crew
+from crewai.project import CrewBase, crew, agent, task
 from crewai import Agent, LLM
-from crewai.project import agent
 from crewai import Task
-from crewai.project import task
 from crewai.knowledge.source.pdf_knowledge_source import PDFKnowledgeSource
 
 import yaml
